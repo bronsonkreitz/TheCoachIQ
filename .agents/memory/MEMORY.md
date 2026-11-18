@@ -1,0 +1,1 @@
+- [CoachIQ demo scope](coaching-demo-scope.md) — Five-sport ENTI 333 class demo; fictional data disclosure and browser-local persistence are intentional.

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "CoachIQ"
+description = "A multi-sport coaching command center with fictional teams, editable rosters, player analytics, data-driven lineups and practice planning for basketball, baseball, soccer, football and hockey."
+version = "1.0.0"
+id = "artifacts/coach-iq"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20390
+
+[services.development]
+run = "pnpm --filter @workspace/coach-iq run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/coach-iq", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/coach-iq/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20390"
+BASE_PATH = "/"
