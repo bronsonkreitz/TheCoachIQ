@@ -1,0 +1,28 @@
+kind = "slides"
+previewPath = "/coach-iq-deck/"
+title = "CoachIQ — Project Presentation"
+description = "Nine-slide ENTI 333 presentation explaining CoachIQ, its five-sport coaching workflow, explainable lineup scoring, targeted practice plans and demo scope."
+version = "1.0.0"
+id = "artifacts/coach-iq-deck"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/coach-iq-deck/" ]
+localPort = 22522
+
+[services.development]
+run = "pnpm --filter @workspace/coach-iq-deck run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/coach-iq-deck", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/coach-iq-deck/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22522"
+BASE_PATH = "/coach-iq-deck/"

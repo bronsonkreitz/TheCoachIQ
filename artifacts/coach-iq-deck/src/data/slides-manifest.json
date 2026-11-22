@@ -1,0 +1,74 @@
+[
+  {
+    "id": "60f62a33-9703-4286-b707-1f5f052acd1e",
+    "position": 1,
+    "filepath": "src/pages/slides/Cover.tsx",
+    "title": "CoachIQ",
+    "description": "Title slide",
+    "speakerNotes": ""
+  },
+  {
+    "id": "e0d77223-a977-4f97-a376-36f5d25b81db",
+    "position": 2,
+    "filepath": "src/pages/slides/Problem.tsx",
+    "title": "Turn team numbers into coaching decisions",
+    "description": "The coaching problem",
+    "speakerNotes": ""
+  },
+  {
+    "id": "5add150d-9254-4564-9df2-7b0859efb9be",
+    "position": 3,
+    "filepath": "src/pages/slides/FiveSports.tsx",
+    "title": "Five sports. One familiar experience.",
+    "description": "Supported sports",
+    "speakerNotes": ""
+  },
+  {
+    "id": "3d12f37d-046b-4f9d-84ba-3bcca7391386",
+    "position": 4,
+    "filepath": "src/pages/slides/KnowYourTeam.tsx",
+    "title": "Know your team before the next game",
+    "description": "Team analysis features",
+    "speakerNotes": ""
+  },
+  {
+    "id": "1480b1b8-42aa-4f4f-9c2b-8c5b2ceeac4d",
+    "position": 5,
+    "filepath": "src/pages/slides/Lineups.tsx",
+    "title": "Lineups with visible reasoning",
+    "description": "Auto-lineup method",
+    "speakerNotes": ""
+  },
+  {
+    "id": "b6789f38-19dd-4e3b-ae3e-343021a13efe",
+    "position": 6,
+    "filepath": "src/pages/slides/Practice.tsx",
+    "title": "Practice plans that target the gaps",
+    "description": "Practice generator",
+    "speakerNotes": ""
+  },
+  {
+    "id": "57a6ca28-903c-4372-b1ae-aa2f3f95db3a",
+    "position": 7,
+    "filepath": "src/pages/slides/SportTools.tsx",
+    "title": "Sport-specific tools, not just different labels",
+    "description": "Per-sport tools",
+    "speakerNotes": ""
+  },
+  {
+    "id": "51f86cb3-2517-42be-9594-0d419f97aa89",
+    "position": 8,
+    "filepath": "src/pages/slides/Boundaries.tsx",
+    "title": "A working demo with clear boundaries",
+    "description": "Scope and limits",
+    "speakerNotes": ""
+  },
+  {
+    "id": "c1015f1d-d5ab-4924-a466-c23a6755d5a0",
+    "position": 9,
+    "filepath": "src/pages/slides/Close.tsx",
+    "title": "From numbers to the next coaching action",
+    "description": "Closing workflow",
+    "speakerNotes": ""
+  }
+]
