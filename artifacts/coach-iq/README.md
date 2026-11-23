@@ -30,6 +30,21 @@ pnpm --filter @workspace/scripts exec tsx --tsconfig ../artifacts/coach-iq/tscon
 - `src/store` - localStorage store and per-sport context.
 - `src/pages/sport/*` - Overview, Roster, Player, Stats, Lineup, Practice, Games, Tools.
 
+## Regression checks
+```sh
+pnpm --filter @workspace/coach-iq test
+pnpm --filter @workspace/coach-iq test:watch
+```
+
+These checks run in jsdom with real React providers and browser-local storage;
+no server, accounts, database, `PORT`, or `BASE_PATH` is needed. Each test starts
+with empty storage and remounts providers to simulate reloads. They cover all five
+sports' saved work, sport switching, selected-sport reset, historical box scores
+after removing players, roster and note save controls, saved lineup and practice
+controls (including completion/deletion), and every editable sport-tool storage
+key. Storage read/write failures and data-version isolation are also checked.
+Charts and layout-dependent browser observation are excluded from these checks.
+
 ## Adding a sport
 1. Add the id to `SportId` in `src/lib/types.ts`.
 2. Create `src/sports/<id>.ts` exporting a `SportConfig` (copy an existing one).
