@@ -1,6 +1,5 @@
 import { Link } from 'wouter';
 import { ArrowRight, BarChart3, ClipboardList, Shuffle, Users, Wrench, CalendarDays } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { HashLink } from '@/components/layout/Site';
 import { imgUrl } from '@/lib/format';
 import { SportCards } from './Sports';
@@ -12,13 +11,6 @@ const FEATURES = [
   { icon: ClipboardList, t: 'Practice that targets gaps', d: 'Your three weakest categories vs league benchmarks become timed drill blocks.' },
   { icon: CalendarDays, t: 'Game log', d: 'Full box scores. Add a result and every score, chart and plan updates.' },
   { icon: Wrench, t: 'Sport-specific tools', d: 'Shot zones, pitch counts, depth charts, line combos, set-piece takers and more.' },
-];
-const FAQ = [
-  ['Is the data real?', 'No. Every team, player and game is fictional and generated in your browser for demonstration.'],
-  ['Where are my edits saved?', 'In localStorage on this device. Use the reset button on any team to restore the original season.'],
-  ['How is the player score calculated?', 'Each stat is ranked as a percentile among similar positions, weighted by position, blended 60% season and 40% last five games, then multiplied by availability.'],
-  ['Can I override the auto lineup?', 'Yes. Swap players with dropdowns or by dragging tokens on the diagram, then save named lineups.'],
-  ['Can I print a practice plan?', 'Yes. Generate a plan, then press Print for a clean sheet without the app chrome.'],
 ];
 
 export default function Landing() {
@@ -91,17 +83,6 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
-        <h2 className="mb-6 font-display text-4xl font-black uppercase">FAQ</h2>
-        <Accordion type="single" collapsible>
-          {FAQ.map(([q, a], i) => (
-            <AccordionItem key={q} value={`q${i}`}>
-              <AccordionTrigger className="text-left font-semibold">{q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{a}</AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </section>
     </div>
   );
 }

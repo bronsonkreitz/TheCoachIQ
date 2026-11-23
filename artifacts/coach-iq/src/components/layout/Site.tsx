@@ -47,7 +47,6 @@ export function Logo({ className }: { className?: string }) {
 const NAV = [
   { href: '/sports', label: 'Sports' },
   { href: '/#features', label: 'Features' },
-  { href: '/#faq', label: 'FAQ' },
   { href: '/about', label: 'How scoring works' },
 ];
 
@@ -155,7 +154,6 @@ export function SiteFooter() {
           <ul className="space-y-2 text-sm">
             <li><Link href="/sports" className="text-foreground/80 hover:text-foreground">Sport picker</Link></li>
             <li><Link href="/about" className="text-foreground/80 hover:text-foreground">How scoring works</Link></li>
-            <li><HashLink to="/#faq" className="text-foreground/80 hover:text-foreground">FAQ</HashLink></li>
           </ul>
         </div>
         <div>
