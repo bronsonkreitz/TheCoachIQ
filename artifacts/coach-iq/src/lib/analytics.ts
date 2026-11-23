@@ -175,12 +175,15 @@ export function computeScores(cfg: SportConfig, players: Player[], games: Game[]
   return out;
 }
 
+/** Explicit team entries take precedence without changing any player box scores. */
+export function gameTeamStats(state: SportState, game: Game): Raw {
+  return game.teamStats ?? sumRaw(state.players.flatMap((p) => p.gameStats.filter((l) => l.gameId === game.id).map((l) => l.s)));
+}
+
 export function teamAgg(state: SportState, filter?: Set<string>): TeamAgg {
   const games = filter ? state.games.filter((g) => filter.has(g.id)) : state.games;
-  const ids = new Set(games.map((g) => g.id));
-  const lines = state.players.flatMap((p) => p.gameStats.filter((l) => ids.has(l.gameId)).map((l) => l.s));
   return {
-    totals: sumRaw(lines),
+    totals: sumRaw(games.map((g) => gameTeamStats(state, g))),
     gp: Math.max(1, games.length),
     games,
     pf: games.reduce((a, g) => a + g.scoreFor, 0),

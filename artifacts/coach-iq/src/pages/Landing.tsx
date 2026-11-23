@@ -35,7 +35,6 @@ export default function Landing() {
           </h1>
           <p className="rise mt-6 max-w-xl text-lg text-muted-foreground" style={{ animationDelay: '160ms' }}>Box scores in. Lineups, practice plans and honest player scores out. No analyst required.</p>
           <div className="rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: '240ms' }}>
-            <HashLink to="sports" testId="button-pick-sport" className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground">Pick your sport <ArrowRight className="h-4 w-4" /></HashLink>
             <HashLink to="how" testId="button-how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/60 px-6 py-3 font-semibold">See how it works</HashLink>
           </div>
         </div>

@@ -19,7 +19,7 @@ export function BoxScoreGrid({ cfg, players, lines, editable, onChange }: { cfg:
   const totals = Object.fromEntries(keys.map((k) => [k.key, rows.reduce((a, p) => a + (lines[p.id]?.[k.key] ?? 0), 0)]));
   if (!rows.length) return <p className="py-6 text-center text-sm text-muted-foreground">No player lines recorded.</p>;
   return (
-    <div className="scrollbar-thin max-h-[52dvh] overflow-auto rounded-xl border border-border">
+    <div className="scrollbar-thin max-h-[52dvh] w-full min-w-0 max-w-full overflow-auto rounded-xl border border-border">
       <table className="w-full text-sm">
         <caption className="sr-only">Box score</caption>
         <thead className="sticky top-0 z-10 bg-surface">
@@ -204,7 +204,7 @@ export function GameDetailDialog({ game, onOpenChange }: { game: Game | null; on
   }, [game?.id]);
   if (!game) return null;
   const players = s.players.filter((p) => !p.removed || lines[p.id]);
-  const sf = editing ? cfg.teamScore(Object.values(lines)) : game.scoreFor;
+  const sf = editing ? cfg.teamScore(game.teamStats ? [game.teamStats] : Object.values(lines)) : game.scoreFor;
   const res = sf > Number(against) ? 'W' : sf < Number(against) ? 'L' : 'D';
   return (
     <Dialog open={!!game} onOpenChange={onOpenChange}>
@@ -253,6 +253,7 @@ export function GameDetailDialog({ game, onOpenChange }: { game: Game | null; on
             </Button>
           </div>
         </div>
+        {game.teamStats && <p className="rounded-lg border border-sport/40 bg-sport/5 p-3 text-sm">This game uses manual team totals, which can differ from the player box score below. Edit or remove the team override in Stats → Enter / edit stats. Player edits here will not overwrite the recorded team totals.</p>}
         <BoxScoreGrid cfg={cfg} players={players} lines={lines} editable={editing} onChange={set} />
         {editing && (
           <DialogFooter>

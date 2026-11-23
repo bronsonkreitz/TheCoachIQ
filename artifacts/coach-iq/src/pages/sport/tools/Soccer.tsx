@@ -3,15 +3,16 @@ import { useSport, useTool } from '@/store/sport-context';
 import { Button } from '@/components/ui/button';
 import { chartTheme } from '@/components/coach/ui';
 import { fmtDate } from '@/lib/format';
+import { gameTeamStats } from '@/lib/analytics';
 import { byScore, PlayerPick } from './shared';
 
 export function Possession() {
   const { cfg, s } = useSport();
   const games = [...s.games].sort((a, b) => a.date.localeCompare(b.date));
   const data = games.map((g) => {
-    const ls = s.players.flatMap((p) => p.gameStats.filter((l) => l.gameId === g.id).map((l) => l.s));
-    const pa = ls.reduce((a, l) => a + (l.pa ?? 0), 0);
-    const pc = ls.reduce((a, l) => a + (l.pc ?? 0), 0);
+    const totals = gameTeamStats(s, g);
+    const pa = totals.pa ?? 0;
+    const pc = totals.pc ?? 0;
     return { name: fmtDate(g.date), opp: g.opponent, Possession: Math.round(g.extra.poss ?? 50), 'Pass %': pa ? Math.round((pc / pa) * 1000) / 10 : 0, Passes: pa };
   });
   const avg = (k: 'Possession' | 'Pass %') => data.reduce((a, d) => a + d[k], 0) / Math.max(1, data.length);

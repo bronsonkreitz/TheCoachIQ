@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
-import { ArrowDown, ArrowUp, Download, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Download, Pencil, X } from 'lucide-react';
 import { useSport } from '@/store/sport-context';
-import { colFmt, colLabel, colVal, lastNIds, playerStats, sumRaw } from '@/lib/analytics';
+import { colFmt, colLabel, colVal, gameTeamStats, lastNIds, playerStats, teamAgg } from '@/lib/analytics';
 import { downloadCsv, fmt, fmtDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { ChartFrame } from '@/components/coach/ChartFrame';
+import { ManualStatsDialog } from '@/components/coach/ManualStatsDialog';
 import { NativeSelect, Panel, Seg, chartTheme } from '@/components/coach/ui';
 
 const PALETTE = ['hsl(74 100% 61%)', 'hsl(192 92% 68%)', 'hsl(280 70% 72%)', 'hsl(24 96% 58%)', 'hsl(146 72% 50%)', 'hsl(354 86% 62%)', 'hsl(40 98% 56%)', 'hsl(218 22% 62%)'];
@@ -15,6 +16,7 @@ const PALETTE = ['hsl(74 100% 61%)', 'hsl(192 92% 68%)', 'hsl(280 70% 72%)', 'hs
 export default function Stats() {
   const { cfg, s, scores, roster } = useSport();
   const [view, setView] = useState<'team' | 'player'>('team');
+  const [manualOpen, setManualOpen] = useState(false);
   const [mode, setMode] = useState<'pg' | 'tot'>(cfg.defaultMode);
   const [range, setRange] = useState<'5' | '10' | 'all'>('all');
   const ranked = useMemo(() => [...roster].sort((a, b) => (scores[b.id]?.score ?? 0) - (scores[a.id]?.score ?? 0)), [roster, scores]);
@@ -27,6 +29,9 @@ export default function Stats() {
 
   const filter = useMemo(() => lastNIds(s.games, range === 'all' ? null : Number(range)), [s.games, range]);
   const games = useMemo(() => [...s.games].filter((g) => filter.has(g.id)).sort((a, b) => a.date.localeCompare(b.date)), [s.games, filter]);
+  const aggregate = useMemo(() => teamAgg(s, filter), [s, filter]);
+  const teamValues = cfg.derive(aggregate.totals, aggregate.gp);
+  const manualGames = games.filter((g) => g.teamStats).length;
   const ps = useMemo(() => Object.fromEntries(roster.map((p) => [p.id, playerStats(cfg, p, filter)])), [roster, cfg, filter]);
   const col = cfg.columns.find((c) => c.key === statKey) ?? cfg.columns[0];
   const player = roster.find((p) => p.id === playerId) ?? ranked[0];
@@ -38,8 +43,7 @@ export default function Stats() {
 
   // 1. Line: trend per game
   const trend = games.map((g) => {
-    const teamLines = s.players.flatMap((p) => p.gameStats.filter((l) => l.gameId === g.id).map((l) => l.s));
-    const teamV = colVal(col, cfg.derive(sumRaw(teamLines), 1), 1, 'tot');
+    const teamV = colVal(col, cfg.derive(gameTeamStats(s, g), 1), 1, 'tot');
     const pl = player?.gameStats.find((l) => l.gameId === g.id);
     const pv = pl ? colVal(col, cfg.derive(pl.s, 1), 1, 'tot') : null;
     return { name: fmtDate(g.date), Team: Number.isFinite(teamV) ? teamV : null, [player?.name ?? 'Player']: pv != null && Number.isFinite(pv) ? pv : null };
@@ -69,7 +73,7 @@ export default function Stats() {
   const pieTop = [...pie.slice(0, 6), ...(pie.length > 6 ? [{ name: 'Rest of roster', value: pie.slice(6).reduce((a, b) => a + b.value, 0) }] : [])];
 
   // Table
-  const tableCols = cfg.columns.filter((c) => roster.some((p) => Number.isFinite(val(p.id, c.key))));
+  const tableCols = cfg.columns.filter((c) => roster.some((p) => Number.isFinite(val(p.id, c.key))) || (view === 'team' && Number.isFinite(teamValues[c.key])));
   const tableRows = [...roster].sort((a, b) => {
     if (sort.key === 'name') return a.name.localeCompare(b.name) * sort.dir;
     if (sort.key === 'gp') return ((ps[a.id]?.gp ?? 0) - (ps[b.id]?.gp ?? 0)) * sort.dir;
@@ -81,7 +85,8 @@ export default function Stats() {
   const exportCsv = () => {
     const header = ['Player', 'Number', 'Position', 'Status', 'GP', ...tableCols.map((c) => colLabel(c, mode))];
     const rows = shownRows.map((p) => [p.name, p.number, p.position, p.status, ps[p.id]?.gp ?? 0, ...tableCols.map((c) => fmt(val(p.id, c.key), colFmt(c, mode)))]);
-    downloadCsv(`${cfg.id}-${view}-${mode === 'pg' ? 'per-game' : 'totals'}-${range === 'all' ? 'season' : `last${range}`}.csv`, [header, ...rows]);
+    const teamRow = ['Team totals', '', '', manualGames ? 'Includes manual team entries' : 'From players', games.length, ...tableCols.map((c) => fmt(colVal(c, teamValues, aggregate.gp, mode), colFmt(c, mode)))];
+    downloadCsv(`${cfg.id}-${view}-${mode === 'pg' ? 'per-game' : 'totals'}-${range === 'all' ? 'season' : `last${range}`}.csv`, [header, ...(view === 'team' ? [teamRow] : []), ...rows]);
   };
 
   const statSelect = (
@@ -102,7 +107,10 @@ export default function Stats() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sport">{games.length} games in range</p>
           <h2 className="font-display text-3xl font-black uppercase">Stats and graphs</h2>
         </div>
+        <Button onClick={() => setManualOpen(true)} data-testid="button-enter-stats"><Pencil /> Enter / edit stats</Button>
       </div>
+      <p className="text-sm text-muted-foreground">Use Enter / edit stats to add a blank game, adjust an individual player, or record your own team totals. Edits are saved in this browser.</p>
+      {manualGames > 0 && <p className="rounded-xl border border-sport/40 bg-sport/5 p-3 text-sm" role="status">{manualGames} game{manualGames === 1 ? ' in this range uses' : 's in this range use'} manually entered team totals. Team charts and totals use those entries; player comparisons and scoring shares use player records only.</p>}
       <div className="sticky top-16 z-30 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-background/85 p-3 backdrop-blur-xl">
         <Seg label="View" value={view} onChange={(v) => setView(v as never)} options={[{ value: 'team', label: 'Team' }, { value: 'player', label: 'Player' }]} />
         <Seg label="Mode" value={mode} onChange={(v) => setMode(v as 'pg' | 'tot')} options={[{ value: 'tot', label: 'Season totals' }, { value: 'pg', label: 'Per game' }]} />
@@ -355,6 +363,11 @@ export default function Stats() {
               </tr>
             </thead>
             <tbody>
+              {view === 'team' && <tr className="border-t border-sport/40 bg-sport/10 font-semibold" data-testid="row-team-stats">
+                <th scope="row" className="sticky left-0 bg-card px-3 py-3 text-left">Team totals</th>
+                <td className="px-3 py-3 text-right tabular">{games.length}</td>
+                {tableCols.map((c) => <td key={c.key} className="px-3 py-3 text-right tabular">{fmt(colVal(c, teamValues, aggregate.gp, mode), colFmt(c, mode))}</td>)}
+              </tr>}
               {shownRows.map((p) => (
                 <tr key={p.id} className="border-t border-border/50 hover:bg-sport/[0.04]">
                   <th scope="row" className="sticky left-0 whitespace-nowrap bg-card px-3 py-2 text-left font-medium">
@@ -375,6 +388,7 @@ export default function Stats() {
           </table>
         </div>
       </Panel>
+      {manualOpen && <ManualStatsDialog initialView={view} initialPlayerId={player?.id} onClose={() => setManualOpen(false)} />}
     </div>
   );
 }

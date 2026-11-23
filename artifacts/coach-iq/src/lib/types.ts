@@ -41,6 +41,8 @@ export interface Game {
   scoreFor: number;
   scoreAgainst: number;
   extra: Raw;
+  /** Optional manually recorded team totals; player box scores remain independent. */
+  teamStats?: Raw;
 }
 
 export interface Upcoming {

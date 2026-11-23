@@ -20,17 +20,24 @@ export function removePlayer(s: SportState, id: string): SportState {
 
 export function writeLines(cfg: SportConfig, s: SportState, gameId: string, lines: Record<string, Raw>): SportState {
   const players = s.players.map((p) => {
-    const others = p.gameStats.filter((l) => l.gameId !== gameId);
+    const existing = p.gameStats.find((l) => l.gameId === gameId);
     const raw = lines[p.id];
-    if (raw && hasData(raw)) return { ...p, gameStats: [...others, { gameId, s: cfg.normalize ? cfg.normalize(raw) : raw }] };
-    return { ...p, gameStats: others };
+    if (existing && raw && Object.keys(existing.s).length === Object.keys(raw).length && Object.entries(raw).every(([key, v]) => existing.s[key] === v)) return p;
+    if (raw && hasData(raw)) {
+      const normalized = cfg.normalize ? cfg.normalize(raw) : raw;
+      if (existing && Object.keys(existing.s).length === Object.keys(normalized).length && Object.entries(normalized).every(([key, v]) => existing.s[key] === v)) return p;
+      const line = { gameId, s: normalized };
+      return { ...p, gameStats: existing ? p.gameStats.map((l) => l.gameId === gameId ? line : l) : [...p.gameStats, line] };
+    }
+    return existing ? { ...p, gameStats: p.gameStats.filter((l) => l.gameId !== gameId) } : p;
   });
   return { ...s, players };
 }
 
 export function addGame(cfg: SportConfig, s: SportState, game: Omit<Game, 'scoreFor'>, lines: Record<string, Raw>, upcomingId?: string): SportState {
   const normalized = Object.fromEntries(Object.entries(lines).filter(([, r]) => hasData(r)).map(([k, r]) => [k, cfg.normalize ? cfg.normalize(r) : r]));
-  const g: Game = { ...game, scoreFor: cfg.teamScore(Object.values(normalized)) };
+  const teamStats = game.teamStats && (cfg.normalize ? cfg.normalize(game.teamStats) : game.teamStats);
+  const g: Game = { ...game, teamStats, scoreFor: cfg.teamScore(teamStats ? [teamStats] : Object.values(normalized)) };
   const next = writeLines(cfg, { ...s, games: [...s.games, g].sort((a, b) => a.date.localeCompare(b.date)) }, g.id, normalized);
   return { ...next, upcoming: upcomingId ? next.upcoming.filter((u) => u.id !== upcomingId) : next.upcoming };
 }
@@ -38,7 +45,12 @@ export function addGame(cfg: SportConfig, s: SportState, game: Omit<Game, 'score
 export function updateGame(cfg: SportConfig, s: SportState, gameId: string, lines: Record<string, Raw>, patch: Partial<Game>): SportState {
   const next = writeLines(cfg, s, gameId, lines);
   const ls = next.players.flatMap((p) => p.gameStats.filter((l) => l.gameId === gameId).map((l) => l.s));
-  return { ...next, games: next.games.map((g) => (g.id === gameId ? { ...g, ...patch, scoreFor: cfg.teamScore(ls) } : g)) };
+  return { ...next, games: next.games.map((g) => {
+    if (g.id !== gameId) return g;
+    const merged = { ...g, ...patch };
+    const teamStats = merged.teamStats && (cfg.normalize ? cfg.normalize(merged.teamStats) : merged.teamStats);
+    return { ...merged, teamStats, scoreFor: cfg.teamScore(teamStats ? [teamStats] : ls) };
+  }) };
 }
 
 export function deleteGame(s: SportState, gameId: string): SportState {

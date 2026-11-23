@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "IMAJOnPDuACRuzsTzc26d"
+uri = "file://.local/outputs/CoachIQ---Project-Presentation.pptx"
+type = "slides"
+title = "CoachIQ — Project Presentation.pptx"
