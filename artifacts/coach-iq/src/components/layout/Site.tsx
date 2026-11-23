@@ -135,7 +135,6 @@ export function SiteFooter() {
         <div className="space-y-4">
           <Logo />
           <p className="max-w-xs text-sm text-muted-foreground">Coach smarter. Win the details. Rosters, stats, explainable lineups and practice plans for five sports.</p>
-          <p className="inline-flex items-center gap-2 rounded-full border border-volt/30 bg-volt/10 px-3 py-1 text-xs font-semibold text-volt">ENTI 333 class project</p>
         </div>
         <div>
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Dashboards</p>
