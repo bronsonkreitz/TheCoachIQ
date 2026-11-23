@@ -34,7 +34,9 @@ export function generatePlan(cfg: SportConfig, opts: PlanOptions): PlanBlock[] {
   const used = new Set<string>();
   const ti = INT_ORDER.indexOf(opts.intensity);
   focus.forEach((row, i) => {
-    let m = i === focus.length - 1 ? skillMin : r5((L - warmMin - coolMin - scrimMin) * shares[i]);
+    // Rounding early shares up must leave at least five minutes per later focus.
+    const reserve = (focus.length - i - 1) * 5;
+    let m = i === focus.length - 1 ? skillMin : Math.min(r5((L - warmMin - coolMin - scrimMin) * shares[i]), skillMin - reserve);
     skillMin -= m;
     const cands = cfg.drills
       .filter((d) => d.phase === 'skill' && d.focusTags.some((t) => row.bench.tags.includes(t)))
