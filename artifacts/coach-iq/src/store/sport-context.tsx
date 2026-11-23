@@ -23,6 +23,22 @@ const SportCtx = createContext<SportCtxValue | null>(null);
 
 export function SportProvider({ id, children }: { id: SportId; children: ReactNode }) {
   const store = useStore();
+  if (store.damaged.includes(id) || store.unreadable !== null || store.readFailed) {
+    return (
+      <section className="mx-auto max-w-3xl px-6 py-16" data-testid="status-sport-recovery">
+        <h1 className="text-2xl font-semibold">{SPORTS[id].name} saved data needs recovery</h1>
+        <p className="mt-3 text-muted-foreground">
+          Your saved work has not been erased. Use the recovery controls above to keep a copy before resetting.
+          {store.damaged.includes(id) && ' Other undamaged sports remain available.'}
+        </p>
+      </section>
+    );
+  }
+  return <ReadySportProvider id={id}>{children}</ReadySportProvider>;
+}
+
+function ReadySportProvider({ id, children }: { id: SportId; children: ReactNode }) {
+  const store = useStore();
   const s = store.get(id);
   const cfg = SPORTS[id];
   const value = useMemo<SportCtxValue>(() => {

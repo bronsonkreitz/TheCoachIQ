@@ -1,48 +1,93 @@
 /**
- * App state: React Context + useReducer, persisted to localStorage.
- * Each sport's state is built lazily from the seeded generator the first time it is opened.
+ * Browser-local state. Unusable entries are retained, never passed to views.
+ * Healthy sports can still save without overwriting quarantined work.
  */
 import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react';
 import type { SportId, SportState } from '@/lib/types';
 import { SPORTS } from '@/sports';
-import { buildSport, DATA_VERSION } from '@/data/generate';
+import { buildSport } from '@/data/generate';
+import { isRecord, validSport } from './validate';
 
 type Data = Partial<Record<SportId, SportState>>;
-type Action = { type: 'update'; sport: SportId; fn: (s: SportState) => SportState } | { type: 'reset'; sport: SportId };
+interface State {
+  data: Data;
+  retained: Record<string, unknown>;
+  damaged: SportId[];
+  unreadable: string | null;
+  readFailed: boolean;
+}
+type Action =
+  | { type: 'update'; sport: SportId; fn: (s: SportState) => SportState }
+  | { type: 'reset'; sport: SportId }
+  | { type: 'recover-all' };
 
 const KEY = 'coachiq.v1';
-
-export type StorageStatus = 'pending' | 'saved' | 'error';
+export type StorageStatus = 'pending' | 'saved' | 'error' | 'recovery';
 
 export function storageFeedback(status: StorageStatus): string {
   if (status === 'error') return 'Not saved to this browser — kept in this tab only';
+  if (status === 'recovery') return 'Saving paused — saved data needs recovery';
   if (status === 'pending') return 'Saving to this browser…';
   return 'Saved in this browser';
 }
 
-function load(): Data {
+function load(): State {
+  const state: State = { data: {}, retained: {}, damaged: [], unreadable: null, readFailed: false };
+  let raw: string | null;
   try {
-    const raw = localStorage.getItem(KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as Data;
-    for (const k of Object.keys(parsed) as SportId[]) if (parsed[k]?.version !== DATA_VERSION) delete parsed[k];
-    return parsed;
+    raw = localStorage.getItem(KEY);
   } catch {
-    return {};
+    return { ...state, readFailed: true };
   }
+  if (raw === null) return state;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw, (_key, value: unknown) => {
+      // JSON permits overflowing numeric literals. Stringifying those would
+      // change them to null, so keep the original bytes for explicit recovery.
+      if (typeof value === 'number' && !Number.isFinite(value)) throw new Error('Non-finite saved number');
+      return value;
+    });
+  } catch {
+    return { ...state, unreadable: raw };
+  }
+  if (!isRecord(parsed)) return { ...state, unreadable: raw };
+  state.retained = { ...parsed };
+  for (const sport of Object.keys(SPORTS) as SportId[]) {
+    if (!Object.hasOwn(parsed, sport)) continue;
+    if (validSport(parsed[sport], sport)) {
+      state.data[sport] = parsed[sport];
+      delete state.retained[sport];
+    } else {
+      state.damaged.push(sport);
+    }
+  }
+  return state;
 }
 
-function ensure(d: Data, sport: SportId): SportState {
-  return d[sport] ?? buildSport(SPORTS[sport]);
-}
-
-function reducer(state: Data, a: Action): Data {
-  if (a.type === 'reset') return { ...state, [a.sport]: buildSport(SPORTS[a.sport]) };
-  return { ...state, [a.sport]: a.fn(ensure(state, a.sport)) };
+function reducer(state: State, a: Action): State {
+  if (a.type === 'recover-all') return { ...state, unreadable: null };
+  // An unreadable top-level snapshot must be explicitly released first.
+  if (state.unreadable !== null || state.readFailed) return state;
+  if (a.type === 'reset') {
+    const retained = { ...state.retained };
+    delete retained[a.sport];
+    return {
+      ...state, retained, damaged: state.damaged.filter((s) => s !== a.sport),
+      data: { ...state.data, [a.sport]: buildSport(SPORTS[a.sport]) },
+    };
+  }
+  if (state.damaged.includes(a.sport)) return state;
+  return { ...state, data: { ...state.data, [a.sport]: a.fn(state.data[a.sport] ?? buildSport(SPORTS[a.sport])) } };
 }
 
 interface Ctx {
   data: Data;
+  damaged: SportId[];
+  unreadable: string | null;
+  readFailed: boolean;
+  recoveryCopy: (sport: SportId) => string;
+  recoverAll: () => void;
   storageStatus: StorageStatus;
   retrySave: () => void;
   get: (s: SportId) => SportState;
@@ -53,25 +98,28 @@ interface Ctx {
 const StoreCtx = createContext<Ctx | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, dispatch] = useReducer(reducer, undefined, load);
+  const [state, dispatch] = useReducer(reducer, undefined, load);
+  const { data, damaged, unreadable, readFailed } = state;
+  const blocked = unreadable !== null || readFailed;
   const [retry, retrySave] = useReducer((n: number) => n + 1, 0);
-  const [attempt, setAttempt] = useState<{ data: Data; retry: number; status: StorageStatus } | null>(null);
-  // Never expose a previous snapshot's successful write as the current save result.
-  const storageStatus = attempt?.data === data && attempt.retry === retry ? attempt.status : 'pending';
+  const [attempt, setAttempt] = useState<{ state: State; retry: number; status: StorageStatus } | null>(null);
+  const storageStatus = blocked ? 'recovery'
+    : attempt?.state === state && attempt.retry === retry ? attempt.status : 'pending';
   useEffect(() => {
+    if (blocked) return;
     try {
-      localStorage.setItem(KEY, JSON.stringify(data));
-      setAttempt({ data, retry, status: 'saved' });
+      localStorage.setItem(KEY, JSON.stringify({ ...state.retained, ...data }));
+      setAttempt({ state, retry, status: 'saved' });
     } catch {
-      setAttempt({ data, retry, status: 'error' });
+      setAttempt({ state, retry, status: 'error' });
     }
-  }, [data, retry]);
+  }, [state, data, retry, blocked]);
   const cache = useMemo(() => new Map<SportId, SportState>(), []);
   const value = useMemo<Ctx>(
     () => ({
-      data,
-      storageStatus,
-      retrySave,
+      data, damaged, unreadable, readFailed, storageStatus, retrySave,
+      recoveryCopy: (sport) => JSON.stringify({ [sport]: state.retained[sport] }, null, 2),
+      recoverAll: () => dispatch({ type: 'recover-all' }),
       get: (s) => {
         if (data[s]) return data[s]!;
         if (!cache.has(s)) cache.set(s, buildSport(SPORTS[s]));
@@ -83,7 +131,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'reset', sport });
       },
     }),
-    [data, cache, storageStatus],
+    [state, data, damaged, unreadable, readFailed, cache, storageStatus],
   );
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

@@ -20,7 +20,7 @@ describe.each(SPORT_IDS)('%s browser-local persistence', (sport) => {
         lineups: [{
           id: 'saved-lineup', teamId: s.team.id, name: 'Friday starters',
           slots: [{ slotId: 'first', label: player.position, position: player.position, playerId: player.id }],
-          score: 81, formation: 'custom', createdAt: '2026-11-22T12:00:00Z',
+          score: 81, formation: Object.keys(SPORTS[sport].formations ?? {})[0] ?? 'custom', createdAt: '2026-11-22T12:00:00Z',
         }],
         plans: [{
           id: 'saved-plan', teamId: s.team.id, name: 'Friday practice', lengthMin: 15,
@@ -110,25 +110,25 @@ describe('storage initialization and failures', () => {
     expect(savedSports()).toEqual({});
   });
 
-  it('discards an outdated sport without erasing a current sport', () => {
+  it('preserves an outdated sport for recovery without erasing a current sport', () => {
     const basketball = buildSport(SPORTS.basketball);
     const soccer = buildSport(SPORTS.soccer);
     soccer.players[0].notes = 'Current saved note';
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       basketball: { ...basketball, version: DATA_VERSION - 1 }, soccer,
     }));
-    const view = mountSport('basketball');
-    expect(view.current.s).toEqual(basketball);
-    view.switchSport('soccer');
+    const view = mountSport('soccer');
     expect(view.current.s).toEqual(soccer);
-    expect(savedSports()).toEqual({ soccer });
+    expect(savedSports()).toEqual(jsonSnapshot({ basketball: { ...basketball, version: DATA_VERSION - 1 }, soccer }));
+    view.switchSport('basketball');
+    expect(view.getByTestId('status-sport-recovery')).toBeTruthy();
   });
 
-  it('recovers from invalid JSON and can save new edits', () => {
+  it('preserves invalid JSON instead of overwriting it on mount', () => {
     localStorage.setItem(STORAGE_KEY, '{broken json');
     const view = mountSport('soccer');
-    act(() => view.current.update((s) => ({ ...s, tools: { recovered: true } })));
-    expect(savedSports().soccer?.tools).toEqual({ recovered: true });
+    expect(view.getByTestId('status-sport-recovery')).toBeTruthy();
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('{broken json');
   });
 
   it('keeps edits usable in memory when storage writes fail', () => {
@@ -140,10 +140,12 @@ describe('storage initialization and failures', () => {
     expect(view.current.s.tools).toEqual({ note: 'In memory' });
   });
 
-  it('starts with demo data when storage cannot be read', () => {
+  it('blocks sport views when storage cannot be read rather than risking saved work', () => {
     vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new DOMException('Blocked', 'SecurityError'); });
+    const write = vi.spyOn(Storage.prototype, 'setItem');
     const view = mountSport('baseball');
-    expect(view.current.s).toEqual(buildSport(SPORTS.baseball));
+    expect(view.getByTestId('status-sport-recovery')).toBeTruthy();
+    expect(write).not.toHaveBeenCalled();
   });
 });
 

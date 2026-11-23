@@ -1,2 +1,3 @@
 - [CoachIQ demo scope](coaching-demo-scope.md) — Five-sport ENTI 333 class demo; fictional data disclosure and browser-local persistence are intentional.
 - [Manual statistics](manual-stats-semantics.md) — Team totals may be recorded independently; preserve player history, including zero-stat appearances.
+- [Saved data recovery](saved-data-recovery.md) — Preserve rejected sports until explicit reset; unreadable storage is not empty storage.
