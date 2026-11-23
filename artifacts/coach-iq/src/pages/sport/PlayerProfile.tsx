@@ -3,6 +3,7 @@ import { Link } from 'wouter';
 import { CartesianGrid, Line, LineChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from 'recharts';
 import { ArrowLeft, Check, Pencil, ThumbsDown, ThumbsUp, UserX } from 'lucide-react';
 import { useSport } from '@/store/sport-context';
+import { storageFeedback, useStore } from '@/store/store';
 import { colLabel, colVal, gameOrder, linesFor, strengthsWeaknesses } from '@/lib/analytics';
 import { fmt, fmtDate } from '@/lib/format';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Status } from '@/lib/types';
 
 export default function PlayerProfile({ playerId }: { playerId: string }) {
+  const { storageStatus } = useStore();
   const { cfg, s, scores, roster, update } = useSport();
   const { toast } = useToast();
   const p = s.players.find((x) => x.id === playerId && !x.removed);
@@ -298,19 +300,19 @@ export default function PlayerProfile({ playerId }: { playerId: string }) {
             <p className="p-5 text-sm text-muted-foreground">No game lines yet. Add a game result to start tracking.</p>
           )}
         </Panel>
-        <Panel kicker="Saved locally" title="Coach notes">
+        <Panel kicker="Browser-local notes" title="Coach notes">
           <label htmlFor="coach-notes" className="sr-only">
             Coach notes
           </label>
           <Textarea id="coach-notes" rows={7} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Practice observations, film cues, conversations..." data-testid="input-coach-notes" />
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">{notes === p.notes ? 'All changes saved' : 'Unsaved changes'}</span>
+            <span className="text-xs text-muted-foreground">{notes === p.notes ? storageFeedback(storageStatus) : 'Unsaved changes'}</span>
             <Button
               size="sm"
               disabled={notes === p.notes}
               onClick={() => {
                 update((x) => upsertPlayer(x, { ...p, notes }));
-                toast({ title: 'Notes saved' });
+                toast({ title: 'Notes updated' });
               }}
               data-testid="button-save-notes"
             >

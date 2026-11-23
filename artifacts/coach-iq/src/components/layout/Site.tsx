@@ -3,6 +3,8 @@ import { Link, useLocation } from 'wouter';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SPORT_LIST } from '@/sports';
+import { storageFeedback, useStore } from '@/store/store';
+import { StorageNotice } from '@/components/coach/StorageNotice';
 
 /** In-page anchor that works from any route (scrolls on the landing page). */
 export function HashLink({ to, className, children, testId }: { to: string; className?: string; children: ReactNode; testId?: string }) {
@@ -129,6 +131,7 @@ export function SiteHeader() {
 }
 
 export function SiteFooter() {
+  const { storageStatus } = useStore();
   return (
     <footer className="relative mt-24 border-t border-border bg-sidebar/60">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
@@ -157,7 +160,7 @@ export function SiteFooter() {
         </div>
         <div>
           <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Data notice</p>
-          <p className="text-sm text-muted-foreground">Edits are saved in this browser only (localStorage). No accounts, no tracking, no live feeds.</p>
+          <p className="text-sm text-muted-foreground">{storageFeedback(storageStatus)}. Browser-local storage only. No accounts, no tracking, no live feeds.</p>
         </div>
       </div>
       <div className="border-t border-border">
@@ -178,6 +181,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grain flex min-h-[100dvh] flex-col">
       <SiteHeader />
+      <StorageNotice />
       <main id="main" className="flex-1">
         {children}
       </main>

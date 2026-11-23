@@ -25,6 +25,7 @@ export default function Landing() {
             Coach smarter.<br /><span className="text-primary">Win the details.</span>
           </h1>
           <p className="rise mt-6 max-w-xl text-lg text-muted-foreground" style={{ animationDelay: '160ms' }}>Box scores in. Lineups, practice plans and honest player scores out. No analyst required.</p>
+          <p className="mt-4 max-w-xl text-sm text-muted-foreground">Edits use localStorage on this device when browser storage is available. If saving fails, a warning appears: keep the tab open and retry saving before reloading.</p>
         </div>
       </section>
 

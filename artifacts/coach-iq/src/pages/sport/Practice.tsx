@@ -90,7 +90,7 @@ export default function Practice() {
             const plan = { id, teamId: s.team.id, name: name.trim() || `Practice ${new Date().toLocaleDateString()}`, lengthMin: total, intensity, focusAreas: focus, blocks, createdAt: new Date().toISOString(), completed: blocks.every((b) => b.done) };
             update((st) => ({ ...st, plans: [...st.plans.filter((p) => p.id !== id), plan] }));
             setPlanId(id);
-            toast({ title: 'Plan saved' });
+            toast({ title: 'Plan added', description: 'Check the browser save status for persistence.' });
           }} data-testid="button-save-plan"><Save /> Save</Button>
           <Button size="sm" variant="outline" onClick={() => window.print()} data-testid="button-print-plan"><Printer /> Print</Button>
         </div>
@@ -126,7 +126,7 @@ export default function Practice() {
         )}
       </Panel>
       <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr] no-print">
-        <Panel title="Saved plans">
+        <Panel title="My plans">
           {!s.plans.length ? <p className="text-sm text-muted-foreground">No saved plans yet.</p> : (
             <ul className="space-y-2">
               {s.plans.map((p) => (

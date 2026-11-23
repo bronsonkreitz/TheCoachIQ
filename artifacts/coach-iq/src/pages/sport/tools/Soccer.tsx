@@ -59,7 +59,7 @@ export function SetPieces() {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">Saved role assignments. Auto assigns by assists (deliveries) and goals (finishers).</p>
+        <p className="text-sm text-muted-foreground">Role assignments. Auto assigns by assists (deliveries) and goals (finishers).</p>
         <Button size="sm" onClick={auto}>Auto assign</Button>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">

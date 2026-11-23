@@ -109,7 +109,7 @@ export default function Stats() {
         </div>
         <Button onClick={() => setManualOpen(true)} data-testid="button-enter-stats"><Pencil /> Enter / edit stats</Button>
       </div>
-      <p className="text-sm text-muted-foreground">Use Enter / edit stats to add a blank game, adjust an individual player, or record your own team totals. Edits are saved in this browser.</p>
+      <p className="text-sm text-muted-foreground">Use Enter / edit stats to add a blank game, adjust an individual player, or record your own team totals. Edits use browser-local storage; check the save status before leaving.</p>
       {manualGames > 0 && <p className="rounded-xl border border-sport/40 bg-sport/5 p-3 text-sm" role="status">{manualGames} game{manualGames === 1 ? ' in this range uses' : 's in this range use'} manually entered team totals. Team charts and totals use those entries; player comparisons and scoring shares use player records only.</p>}
       <div className="sticky top-16 z-30 flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-background/85 p-3 backdrop-blur-xl">
         <Seg label="View" value={view} onChange={(v) => setView(v as never)} options={[{ value: 'team', label: 'Team' }, { value: 'player', label: 'Player' }]} />

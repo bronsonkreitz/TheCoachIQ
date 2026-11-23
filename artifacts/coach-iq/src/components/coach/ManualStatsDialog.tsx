@@ -89,7 +89,7 @@ export function ManualStatsDialog({ onClose, initialView, initialPlayerId }: {
       const id = uid(`${cfg.id}-manual`);
       update((st) => addGame(cfg, st, { ...patch, id, teamId: st.team.id }, scope === 'player' ? lines : {}));
     }
-    toast({ title: 'Manual stats saved', description: 'Stats, team charts and recommendations have been updated. Saved in this browser.' });
+    toast({ title: 'Manual stats updated', description: 'Stats, team charts and recommendations have been updated. Check the browser save status for persistence.' });
     onClose();
   };
   const players = s.players.filter((p) => (!p.removed || !!lines[p.id]) && (playerId === 'all' || p.id === playerId));

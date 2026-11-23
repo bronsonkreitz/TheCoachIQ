@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { useSport } from '@/store/sport-context';
+import { storageFeedback, useStore } from '@/store/store';
 import { Panel, Seg } from '@/components/coach/ui';
 import { Rotation, ShotChart } from './tools/Basketball';
 import { BattingOrder, Bullpen, PitchCount } from './tools/Baseball';
@@ -9,6 +10,7 @@ import { DepthChart, FilmNotes, Playbook } from './tools/Football';
 import { IceTime, Lines, ShotMap } from './tools/Hockey';
 
 export default function Tools() {
+  const { storageStatus } = useStore();
   const { cfg } = useSport();
   const q = new URLSearchParams(window.location.search).get('t');
   const [tool, setTool] = useState(cfg.tools.find((t) => t.id === q)?.id ?? cfg.tools[0].id);
@@ -43,7 +45,7 @@ export default function Tools() {
       <div className="scrollbar-thin overflow-x-auto">
         <Seg label="Tool" value={tool} onChange={setTool} options={cfg.tools.map((t) => ({ value: t.id, label: t.label }))} />
       </div>
-      <Panel kicker="Saved automatically" title={meta.label}>
+      <Panel kicker={storageFeedback(storageStatus)} title={meta.label}>
         <p className="mb-4 text-sm text-muted-foreground">{meta.desc}</p>
         {MAP[tool] ?? <p className="text-sm text-muted-foreground">Tool not available.</p>}
       </Panel>

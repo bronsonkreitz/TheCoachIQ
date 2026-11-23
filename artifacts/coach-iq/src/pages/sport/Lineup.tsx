@@ -117,13 +117,13 @@ export default function Lineup() {
           })}
         </Panel>
       </div>
-      <Panel title="Saved lineups" actions={
+      <Panel title="My lineups" actions={
         <form className="flex gap-2" onSubmit={(e) => {
           e.preventDefault();
           if (!name.trim()) { toast({ title: "Name the lineup first" }); return; }
           update((st) => ({ ...st, lineups: [...st.lineups, { id: uid('lu'), teamId: st.team.id, name: name.trim(), slots, score, createdAt: new Date().toISOString(), formation }] }));
           setName('');
-          toast({ title: 'Lineup saved' });
+          toast({ title: 'Lineup added', description: 'Check the browser save status for persistence.' });
         }}>
           <Input aria-label="Lineup name" placeholder="Lineup name" value={name} onChange={(e) => setName(e.target.value)} className="w-48" data-testid="input-lineup-name" />
           <Button type="submit" data-testid="button-save-lineup"><Save /> Save lineup</Button>

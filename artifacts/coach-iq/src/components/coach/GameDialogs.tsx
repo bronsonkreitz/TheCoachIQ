@@ -272,7 +272,7 @@ export function GameDetailDialog({ game, onOpenChange }: { game: Game | null; on
               onClick={() => {
                 const sa = Math.max(0, Number(against) || 0);
                 update((st) => updateGame(cfg, st, game.id, lines, { scoreAgainst: sa }));
-                toast({ title: 'Box score saved', description: 'Season stats, scores and charts recalculated.' });
+                toast({ title: 'Box score updated', description: 'Season stats, scores and charts recalculated.' });
                 setEditing(false);
               }}
             >

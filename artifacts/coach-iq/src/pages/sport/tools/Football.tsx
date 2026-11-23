@@ -27,7 +27,7 @@ export function DepthChart() {
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">Defaults to performance score order. Changes save automatically.</p>
+        <p className="text-sm text-muted-foreground">Defaults to performance score order. Browser saving is automatic when storage is available.</p>
         <Button size="sm" variant="outline" onClick={() => setDepth({})}>Reset to score order</Button>
       </div>
       <div className="scrollbar-thin overflow-x-auto">
