@@ -1,6 +1,5 @@
 import { Link } from 'wouter';
 import { ArrowRight, BarChart3, ClipboardList, Shuffle, Users, Wrench, CalendarDays } from 'lucide-react';
-import { HashLink } from '@/components/layout/Site';
 import { imgUrl } from '@/lib/format';
 import { SportCards } from './Sports';
 
@@ -26,9 +25,6 @@ export default function Landing() {
             Coach smarter.<br /><span className="text-primary">Win the details.</span>
           </h1>
           <p className="rise mt-6 max-w-xl text-lg text-muted-foreground" style={{ animationDelay: '160ms' }}>Box scores in. Lineups, practice plans and honest player scores out. No analyst required.</p>
-          <div className="rise mt-8 flex flex-wrap gap-3" style={{ animationDelay: '240ms' }}>
-            <HashLink to="how" testId="button-how-it-works" className="inline-flex items-center gap-2 rounded-xl border border-border bg-background/60 px-6 py-3 font-semibold">See how it works</HashLink>
-          </div>
         </div>
       </section>
 
