@@ -38,7 +38,12 @@ CoachIQ gives coaches a simple, affordable tool to organize their teams and data
 4. Never commit real API keys or passwords. Use environment variables or Replit Secrets.
 
 ## Market Research and Requirements
-Our research, customer conversations, and requirements will be documented in the `/docs` folder.
+## Market Research and Requirements
+- [Market Research](docs/market-research.md)
+- [Customer Interviews](docs/customer-interviews.md)
+- [Product Requirements](docs/requirements.md)
+- [AI Usage](docs/ai-usage.md)
+- [Architecture](docs/architecture.md)
 
 ## Team
 | Name | Role |
